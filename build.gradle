@@ -1,0 +1,60 @@
+plugins {
+    id 'java'
+    id 'net.serenity-bdd.serenity-gradle-plugin' version '4.2.1'
+}
+
+group = 'com.banistmo.reto'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+ext {
+    serenityVersion = '4.2.1'
+    cucumberVersion = '7.18.0'
+    junitPlatformVersion = '1.10.2'
+}
+
+dependencies {
+    // Serenity BDD + Screenplay + Cucumber
+    testImplementation "net.serenity-bdd:serenity-core:${serenityVersion}"
+    testImplementation "net.serenity-bdd:serenity-junit:${serenityVersion}"
+    testImplementation "net.serenity-bdd:serenity-cucumber:${serenityVersion}"
+    testImplementation "net.serenity-bdd:serenity-screenplay:${serenityVersion}"
+    testImplementation "net.serenity-bdd:serenity-screenplay-webdriver:${serenityVersion}"
+
+    // Cucumber sobre JUnit Platform
+    testImplementation "io.cucumber:cucumber-java:${cucumberVersion}"
+    testImplementation "io.cucumber:cucumber-junit-platform-engine:${cucumberVersion}"
+    testImplementation "org.junit.platform:junit-platform-suite:${junitPlatformVersion}"
+
+    // Validación del PDF y aserciones
+    testImplementation 'org.apache.pdfbox:pdfbox:3.0.2'
+    testImplementation 'org.assertj:assertj-core:3.25.3'
+
+    testImplementation 'org.slf4j:slf4j-simple:2.0.12'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+test {
+    useJUnitPlatform()
+    testLogging.showStandardStreams = true
+    systemProperty 'file.encoding', 'UTF-8'
+    // Permite: gradle clean test -Pheadless=true
+    if (project.hasProperty('headless')) {
+        systemProperty 'headless', project.property('headless')
+    }
+    systemProperty 'download.dir', "${buildDir}/downloads".toString()
+    finalizedBy 'aggregate'
+}
+
+gradle.startParameter.continueOnFailure = true
